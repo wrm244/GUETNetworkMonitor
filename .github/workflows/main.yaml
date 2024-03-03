@@ -17,5 +17,5 @@ jobs:
           python_ver: '3.8'
           spec: 'main.spec'
           requirements: 'requirements.txt'
-          upload_exe_with_name: '桂电校园网掉线自连'
-          options: --onefile, --name "桂电校园网掉线自连", --windowed, 
+          upload_exe_with_name: 'app'
+          options: --onefile, --name "app", --windowed, 
