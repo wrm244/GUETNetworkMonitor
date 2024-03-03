@@ -28,9 +28,13 @@ def login(url, user_account, user_password, user_operators=''):
                 if response.status_code == 200:
                     result = json.loads(response.text[7:-2])
                     if result['result'] == 1:
-                        return '登录成功！'
+                        return 1
                     elif result['result'] == 0:
-                        return "登录失败。提示：" + result['msg']
+                        result_msg = result['msg']
+                        if "已经在线" in result_msg:
+                            return 2
+                        else:
+                            return "登录失败"+result['msg']
                     else:
                         return "登录失败。未知原因。"
                 else:

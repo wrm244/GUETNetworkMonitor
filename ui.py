@@ -1,9 +1,14 @@
 import sys
+import os
 import json
 import base64
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QMessageBox, QCheckBox,QSizePolicy
+import threading
+import time
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QTextEdit,QLineEdit,QCheckBox,QComboBox,QMessageBox
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal,QObject,QTimer
+import requests
+
 from authentication_utils import login, logout
 
 # 定义保存加密后的登录信息的函数
@@ -26,6 +31,16 @@ def load_decrypted_login_info():
         return None, None, None
 
 class LoginWindow(QWidget):
+    # 添加一个信号，在用户登录成功时发射
+    login_successful = pyqtSignal()
+    def show_progress_message(self, message):
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("提示")
+        msg_box.setText(message)
+        msg_box.setStandardButtons(QMessageBox.NoButton)  # 不显示按钮
+        msg_box.show()
+        QTimer.singleShot(5000, msg_box.close)  # 延迟 2 秒后关闭消息框
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("校园网登录界面")
@@ -83,7 +98,7 @@ class LoginWindow(QWidget):
         hbox_layout3.addWidget(self.operator_label)
         self.operator_combo = QComboBox()
         self.operator_combo.setFont(QFont("Arial", 12))  # 设置字体大小
-        self.operator_combo.addItems(["中国移动", "中国电信", "中国联通","校园网"])
+        self.operator_combo.addItems(["中国移动", "中国电信", "中国联通", "校园网"])
         hbox_layout3.addWidget(self.operator_combo)
         hbox_layout3.addStretch(1)
         main_layout.addLayout(hbox_layout3)
@@ -131,12 +146,21 @@ class LoginWindow(QWidget):
 
         # 执行登录操作
         login_result = login(login_url, account, password, operator_code)
-        if login_result == "登录成功！":
+        if login_result == 1:
             save_encrypted_login_info(account, password, operator_code)
-        self.show_message_box(login_result)
+            self.show_message_box('登录成功！')
+            login_result = "登录成功"
+            time.sleep(1)
+            # 登录成功时发射信号
+            self.login_successful.emit()
+        elif login_result == 2:
+            save_encrypted_login_info(account, password, operator_code)
+            self.show_message_box('你已经在线，点击OK进入监控...')
+            self.login_successful.emit()
+        else:
+            self.show_message_box(login_result)
 
     def logout(self):
-        
         logout_result = logout(logout_url, self.account_entry.text())
         self.show_message_box(logout_result)
 
@@ -152,6 +176,88 @@ class LoginWindow(QWidget):
         else:
             self.password_entry.setEchoMode(QLineEdit.Password)
 
+
+class MonitorWindow(QWidget):
+    def __init__(self, monitor_thread):
+        super().__init__()
+        self.setWindowTitle("校园网监控日志")
+        self.resize(700, 500)  # 设置监控窗口的大小
+        self.monitor_thread = monitor_thread
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        self.monitor_label = QLabel("监控信息")
+        self.monitor_label.setFont(QFont("Arial", 12))
+
+        self.monitor_text = QTextEdit()
+        self.monitor_text.setReadOnly(True)
+
+        self.stop_button = QPushButton("停止监控")
+        self.stop_button.clicked.connect(self.stop_monitoring)
+
+        layout.addWidget(self.monitor_label)
+        layout.addWidget(self.monitor_text)
+        layout.addWidget(self.stop_button)
+
+        self.setLayout(layout)
+
+    def stop_monitoring(self):
+        self.monitor_thread.stop()
+        self.close()  # 关闭监控窗口
+        login_window.show()
+
+
+class MonitorThread(QObject):
+    # 添加一个信号，用于发送监控信息
+    message_emitted = pyqtSignal(str)
+
+    def __init__(self, username, password, operator_code):
+        super().__init__()
+        self.username = username
+        self.password = password
+        self.operator_code = operator_code
+        self._stop_event = threading.Event()
+
+    def run(self):
+        while not self._stop_event.is_set():
+            if not check_internet_connection():
+                # 发射监控信息信号
+                self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 无法访问网络，正在重新登录校园网...")
+                login_result = login(login_url, self.username, self.password, self.operator_code)
+                if login_result == 1 or login_result == 2:
+                    self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 重新登陆成功")
+                else:
+                    self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {login_result}")
+            else:
+                # 发射监控信息信号
+                self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 网络连接一切正常")
+            time.sleep(10)  # 每隔五分钟检查一次
+
+    def stop(self):
+        self._stop_event.set()
+
+
+def check_internet_connection():
+    try:
+        # 从系统环境变量中获取代理设置(你开了代理我也不怕)
+        http_proxy = os.environ.get('HTTP_PROXY') 
+        https_proxy = os.environ.get('HTTPS_PROXY')
+        # 构造代理字典
+        proxies = {
+            'http': http_proxy,
+            'https': https_proxy,
+        }
+        response = requests.get("https://www.baidu.com", timeout=5 ,proxies=proxies)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception as e:
+        return False
+
+
 # 要登录的URL
 login_url = "http://10.0.1.5:801/eportal/portal/login"
 logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
@@ -159,5 +265,29 @@ logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     login_window = LoginWindow()
+
+    # 监听登录成功信号
+    def on_login_successful():
+        login_window.close()  # 关闭登录界面
+        # 启动监视线程
+        username, password, operator = login_window.account_entry.text(), login_window.password_entry.text(), login_window.operator_combo.currentText()
+        operator_code = ""
+        if operator == "中国移动":
+            operator_code = "cmcc"
+        elif operator == "中国电信":
+            operator_code = "telecom"
+        elif operator == "中国联通":
+            operator_code = "unicom"
+        elif operator == "校园网":
+            operator_code = ""
+        monitor_thread = MonitorThread(username, password, operator_code)
+        monitor_thread_obj = threading.Thread(target=monitor_thread.run)
+        monitor_thread_obj.start()
+        global monitor_window
+        monitor_window = MonitorWindow(monitor_thread)
+        monitor_thread.message_emitted.connect(monitor_window.monitor_text.append)
+        monitor_window.show()
+
+    login_window.login_successful.connect(on_login_successful)
     login_window.show()
     sys.exit(app.exec_())
