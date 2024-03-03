@@ -4,9 +4,10 @@ import json
 import base64
 import threading
 import time
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QTextEdit,QLineEdit,QCheckBox,QComboBox,QMessageBox
+import logging
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QTextEdit, QLineEdit, QCheckBox, QComboBox, QMessageBox
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, pyqtSignal,QObject,QTimer
+from PyQt5.QtCore import Qt, pyqtSignal, QObject, QTimer
 import requests
 
 from authentication_utils import login, logout
@@ -33,6 +34,9 @@ def load_decrypted_login_info():
 class LoginWindow(QWidget):
     # 添加一个信号，在用户登录成功时发射
     login_successful = pyqtSignal()
+    # 添加一个信号，在窗口关闭时发射
+    window_closed = pyqtSignal()
+
     def show_progress_message(self, message):
         msg_box = QMessageBox()
         msg_box.setWindowTitle("提示")
@@ -150,15 +154,18 @@ class LoginWindow(QWidget):
             save_encrypted_login_info(account, password, operator_code)
             self.show_message_box('登录成功！')
             login_result = "登录成功"
+            logging.info(login_result)
             time.sleep(1)
             # 登录成功时发射信号
             self.login_successful.emit()
         elif login_result == 2:
             save_encrypted_login_info(account, password, operator_code)
             self.show_message_box('你已经在线，点击OK进入监控...')
+            logging.info("已经在线状态")
             self.login_successful.emit()
         else:
             self.show_message_box(login_result)
+            logging.info(login_result)
 
     def logout(self):
         logout_result = logout(logout_url, self.account_entry.text())
@@ -178,9 +185,13 @@ class LoginWindow(QWidget):
 
 
 class MonitorWindow(QWidget):
+    # 添加一个信号，在窗口关闭时发射
+    window_closed = pyqtSignal()
+
     def __init__(self, monitor_thread):
         super().__init__()
-        self.setWindowTitle("校园网监控日志")
+        self.setWindowTitle("校园网自动监控中")
+        self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint)
         self.resize(700, 500)  # 设置监控窗口的大小
         self.monitor_thread = monitor_thread
         self.init_ui()
@@ -189,7 +200,7 @@ class MonitorWindow(QWidget):
         layout = QVBoxLayout()
 
         self.monitor_label = QLabel("监控信息")
-        self.monitor_label.setFont(QFont("Arial", 12))
+        self.monitor_label.setFont(QFont("Arial", 13))
 
         self.monitor_text = QTextEdit()
         self.monitor_text.setReadOnly(True)
@@ -206,7 +217,7 @@ class MonitorWindow(QWidget):
     def stop_monitoring(self):
         self.monitor_thread.stop()
         self.close()  # 关闭监控窗口
-        login_window.show()
+        login_window.show()  # 显示登录窗口
 
 
 class MonitorThread(QObject):
@@ -224,16 +235,25 @@ class MonitorThread(QObject):
         while not self._stop_event.is_set():
             if not check_internet_connection():
                 # 发射监控信息信号
-                self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 无法访问网络，正在重新登录校园网...")
+                message = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 无法访问网络，正在重新登录校园网..."
+                self.message_emitted.emit(message)
+                logging.info("无法访问网络，正在重新登录校园网...")  # 将日志信息写入文件
                 login_result = login(login_url, self.username, self.password, self.operator_code)
                 if login_result == 1 or login_result == 2:
-                    self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 重新登陆成功")
+                    message = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 重新登陆成功"
+                    self.message_emitted.emit(message)
+                    logging.info("重新登陆成功")  # 将日志信息写入文件
                 else:
-                    self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {login_result}")
+                    message = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {login_result}"
+                    self.message_emitted.emit(message)
+                    logging.info(login_result)  # 将日志信息写入文件
             else:
                 # 发射监控信息信号
-                self.message_emitted.emit(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 网络连接一切正常")
+                message = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 网络连接一切正常"
+                self.message_emitted.emit(message)
+                logging.info("网络连接一切正常")  # 将日志信息写入文件
             time.sleep(10)  # 每隔五分钟检查一次
+
 
     def stop(self):
         self._stop_event.set()
@@ -265,7 +285,7 @@ logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     login_window = LoginWindow()
-
+    logging.basicConfig(filename='monitor.log', level=logging.INFO, format='%(asctime)s - %(message)s')
     # 监听登录成功信号
     def on_login_successful():
         login_window.close()  # 关闭登录界面
@@ -290,4 +310,10 @@ if __name__ == "__main__":
 
     login_window.login_successful.connect(on_login_successful)
     login_window.show()
+
+    # 监听登录窗口关闭信号
+    def on_login_window_closed():
+        sys.exit()  # 退出应用程序
+    login_window.window_closed.connect(on_login_window_closed)
+    
     sys.exit(app.exec_())
