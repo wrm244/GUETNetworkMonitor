@@ -6,7 +6,6 @@ import threading
 from utils import check_internet_connection
 import sys
 
-sys.path.append('../')  # 添加上一级目录到 sys.path
 from authentication_utils import login, logout
 
 # 要登录的URL

@@ -3,7 +3,8 @@
 import subprocess
 import socket
 import socket
-import struct,os,re
+import struct, os, re
+
 
 def get_physical_mac_address():
     try:
@@ -33,6 +34,7 @@ def get_physical_mac_address():
 
     return None
 
+
 def get_network_info():
     try:
         wlan_user_ip = get_ip()
@@ -42,15 +44,17 @@ def get_network_info():
     except Exception as e:
         print("获取网络信息失败:", e)
         return None, None, None
-    
-def get_ip():  #更准确获取IP
-    try: 
-        s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) 
-        s.connect(('8.8.8.8',80)) 
-        ip = s.getsockname()[0] 
-    finally: 
-        s.close() 
+
+
+def get_ip():  # 更准确获取IP
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
     return ip
+
 
 def ip_to_int(ip):
     try:
@@ -58,6 +62,7 @@ def ip_to_int(ip):
     except Exception as e:
         print("IP地址转换失败:", e)
         return None
+
 
 def format_mac(mac_address):
     try:

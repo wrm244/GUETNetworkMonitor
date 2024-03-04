@@ -2,6 +2,7 @@
 
 import base64
 
+
 def base64_encrypt(text):
     try:
         encrypted = base64.b64encode(text.encode()).decode()

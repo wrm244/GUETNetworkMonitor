@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayo
 
 from utils import save_encrypted_login_info, load_decrypted_login_info
 
-sys.path.append('../')
 from authentication_utils import login, logout
 
 # 要登录的URL

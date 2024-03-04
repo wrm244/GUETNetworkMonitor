@@ -1,11 +1,12 @@
 # authentication_utils.py
 
-import requests
 import json
-import socket
-import struct
-from network_utils import get_network_info,ip_to_int,format_mac
+
+import requests
+
 from encryption_utils import base64_encrypt
+from network_utils import get_network_info, ip_to_int, format_mac
+
 
 def login(url, user_account, user_password, user_operators=''):
     try:
@@ -34,7 +35,7 @@ def login(url, user_account, user_password, user_operators=''):
                         if "已经在线" in result_msg:
                             return 2
                         else:
-                            return "登录失败"+result['msg']
+                            return "登录失败" + result['msg']
                     else:
                         return "登录失败。未知原因。"
                 else:
@@ -43,6 +44,7 @@ def login(url, user_account, user_password, user_operators=''):
             return "获取网络信息失败，请重启软件"
     except Exception as e:
         return "登录失败:"
+
 
 def logout(url, username):
     try:
@@ -53,7 +55,7 @@ def logout(url, username):
             if wlan_user_ip and wlan_user_mac:
                 logout_params = {
                     'callback': 'dr1002',
-                    'user_account': f'{username}', 
+                    'user_account': f'{username}',
                     'wlan_user_mac': wlan_user_mac,
                     'wlan_user_ip': wlan_user_ip
                 }

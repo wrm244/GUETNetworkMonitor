@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['ui/main.py'],
-    pathex=['./network_utils.py', './authentication_utils.py', './encryption_utils.py','ui/login_window.py','ui/monitor_thread.py','ui/monitor_window.py','ui/utils.py'],
+    ['main.py'],
+    pathex=['network_utils.py', 'authentication_utils.py', 'encryption_utils.py','login_window.py','monitor_thread.py','monitor_window.py','utils.py'],
     binaries=[],
     datas=[],
-    hiddenimports=['./encryption_utils', './network_utils', './authentication_utils','ui/login_window','ui/monitor_thread','ui/monitor_window','ui/utils'],
+    hiddenimports=['encryption_utils', 'network_utils', 'authentication_utils','login_window','monitor_thread','monitor_window','utils'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
