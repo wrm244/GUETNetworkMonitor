@@ -4,11 +4,15 @@ import time
 import threading
 
 from utils import check_internet_connection
+import sys
+
+sys.path.append('../')  # 添加上一级目录到 sys.path
 from authentication_utils import login, logout
 
 # 要登录的URL
 login_url = "http://10.0.1.5:801/eportal/portal/login"
 logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
+
 
 class MonitorThread(QObject):
     message_emitted = pyqtSignal(str)

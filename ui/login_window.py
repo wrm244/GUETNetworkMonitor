@@ -1,15 +1,22 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QLineEdit, QCheckBox, QComboBox, QMessageBox
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, pyqtSignal
-from authentication_utils import login, logout
 import logging
+import sys
 import time
-from utils import save_encrypted_login_info, load_decrypted_login_info, check_internet_connection
+
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QLineEdit, QCheckBox, \
+    QComboBox, QMessageBox
+
+from utils import save_encrypted_login_info, load_decrypted_login_info
+
+sys.path.append('../')
 from authentication_utils import login, logout
 
 # 要登录的URL
 login_url = "http://10.0.1.5:801/eportal/portal/login"
 logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
+
+
 class LoginWindow(QWidget):
     login_successful = pyqtSignal()
     window_closed = pyqtSignal()

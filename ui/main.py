@@ -2,16 +2,19 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from login_window import LoginWindow
 import logging
-from monitor_thread import MonitorThread
-from monitor_window import MonitorWindow
 from PyQt5.QtGui import QIcon
 import threading
+
+from monitor_thread import MonitorThread
+from monitor_window import MonitorWindow
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('icon.png'))
     login_window = LoginWindow()
     logging.basicConfig(filename='monitor.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
+
     # 监听登录成功信号
     def on_login_successful():
         login_window.close()  # 关闭登录界面
@@ -34,12 +37,16 @@ if __name__ == "__main__":
         monitor_thread.message_emitted.connect(monitor_window.monitor_text.append)
         monitor_window.show()
 
+
     login_window.login_successful.connect(on_login_successful)
     login_window.show()
+
 
     # 监听登录窗口关闭信号
     def on_login_window_closed():
         sys.exit()  # 退出应用程序
+
+
     login_window.window_closed.connect(on_login_window_closed)
-    
+
     sys.exit(app.exec_())

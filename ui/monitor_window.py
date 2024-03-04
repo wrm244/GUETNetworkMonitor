@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QTextEdit, QPushButton, QVBoxLayout
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import pyqtSignal,Qt
-from monitor_thread import MonitorThread
+from PyQt5.QtCore import pyqtSignal, Qt
 import sys
+
+
 class MonitorWindow(QWidget):
     window_closed = pyqtSignal()
 
@@ -36,4 +37,3 @@ class MonitorWindow(QWidget):
         self.monitor_thread.stop()
         self.close()  # 关闭监控窗口
         sys.exit()
-

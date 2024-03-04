@@ -1,7 +1,6 @@
 import os
 import json
 import base64
-import logging
 import requests
 
 def save_encrypted_login_info(username, password, operator):
