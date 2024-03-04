@@ -3,10 +3,10 @@
 
 a = Analysis(
     ['main.py'],
-    pathex=['network_utils.py', 'authentication_utils.py', 'encryption_utils.py','login_window.py','monitor_thread.py','monitor_window.py','utils.py'],
+    pathex=['network_utils.py', 'authentication_utils.py', 'encryption_utils.py','login_window.py','monitor_thread.py','monitor_window.py','utils.py','image.py'],
     binaries=[],
     datas=[],
-    hiddenimports=['encryption_utils', 'network_utils', 'authentication_utils','login_window','monitor_thread','monitor_window','utils'],
+    hiddenimports=['encryption_utils', 'network_utils', 'authentication_utils','login_window','monitor_thread','monitor_window','utils','image'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -21,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='桂电校园网监视',
+    name='桂电校园网断网自连',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
