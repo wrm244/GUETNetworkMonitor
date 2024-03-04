@@ -2,7 +2,9 @@ import os
 import json
 import base64
 import requests
+import urllib3
 
+urllib3.disable_warnings()
 def save_encrypted_login_info(username, password, operator):
     login_info = {
         'username': base64.b64encode(username.encode()).decode(),
@@ -30,7 +32,7 @@ def check_internet_connection():
             'http': http_proxy,
             'https': https_proxy,
         }
-        response = requests.get("https://www.baidu.com", timeout=5 ,proxies=proxies)
+        response = requests.get("https://www.baidu.com", timeout=5 ,proxies=proxies, verify=False)
         if response.status_code == 200:
             return True
         else:

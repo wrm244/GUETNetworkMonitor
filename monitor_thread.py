@@ -42,7 +42,7 @@ class MonitorThread(QObject):
                 message = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 网络连接一切正常"
                 self.message_emitted.emit(message)
                 logging.info("网络连接一切正常")
-            time.sleep(10)
+            time.sleep(15)
 
     def stop(self):
         self._stop_event.set()

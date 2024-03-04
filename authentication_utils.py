@@ -34,16 +34,18 @@ def login(url, user_account, user_password, user_operators=''):
                         result_msg = result['msg']
                         if "已经在线" in result_msg:
                             return 2
+                        elif "1.2.3.4" in result_msg:
+                            return "登录失败,请查看：wlan_ip: "+wlan_user_ip +"mac: "+wlan_user_mac + "是否正确"
                         else:
-                            return "登录失败" + result['msg']
+                            return "登录失败 " + result['msg']
                     else:
-                        return "登录失败。未知原因。"
+                        return "登录失败, 未知原因。"
                 else:
-                    return "登录失败。看一下是否连接到校园网,或者重新点击按钮。"
+                    return "登录失败。是否连接到校园网?或者重新点击按钮。"
         else:
             return "获取网络信息失败，请重启软件"
     except Exception as e:
-        return "登录失败:"
+        return "登录失败"
 
 
 def logout(url, username):
