@@ -5,15 +5,60 @@ import time
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QLineEdit, QCheckBox, \
-    QComboBox, QMessageBox
+    QComboBox, QMessageBox, QDialog
 
 from utils import save_encrypted_login_info, load_decrypted_login_info
 
-from authentication_utils import login, logout
+from authentication_utils import login, logout, login_unmac
 
 # 要登录的URL
 login_url = "http://10.0.1.5:801/eportal/portal/login"
 logout_url = "http://10.0.1.5:801/eportal/portal/mac/unbind"
+
+
+class CustomDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("单独设置WAN_IP与MAC地址")
+
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        # 添加文字标签
+        label = QLabel(
+            "由于你可能连接了校园网再套了层局域网(也就是单独路由器),比如在实验室中，你可以自己找到路由器的WAN_IP和MAC地址来填写")
+        label.setFont(QFont("Arial", 13))
+        label.setAlignment(Qt.AlignCenter)
+        label.setWordWrap(True)  # 允许自动换行
+        layout.addWidget(label)
+
+        # 添加说明标签和输入框
+        self.ip_label = QLabel("WLAN用户IP:")
+        self.ip_entry = QLineEdit()
+        layout.addWidget(self.ip_label)
+        layout.addWidget(self.ip_entry)
+
+        self.mac_label = QLabel("WLAN用户MAC:")
+        self.mac_entry = QLineEdit()
+        layout.addWidget(self.mac_label)
+        layout.addWidget(self.mac_entry)
+
+        # 添加确认按钮
+        self.confirm_button = QPushButton("确认")
+        self.confirm_button.clicked.connect(self.confirm)
+        layout.addWidget(self.confirm_button)
+
+        self.setLayout(layout)
+
+    def confirm(self):
+        # 在此处处理确认按钮点击事件
+        wlan_user_ip = self.ip_entry.text()
+        wlan_user_mac = self.mac_entry.text()
+
+        # 可以在此处进行进一步处理，如向服务器发送数据等
+        self.accept()
 
 
 class LoginWindow(QWidget):
@@ -29,7 +74,7 @@ class LoginWindow(QWidget):
         # 自定义窗口大小
         window_width = 500
         window_height = 400
-        self.setFixedSize(window_width, window_height)  # 设置窗口固定大小 
+        self.setFixedSize(window_width, window_height)  # 设置窗口固定大小
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignCenter)
 
@@ -122,12 +167,12 @@ class LoginWindow(QWidget):
         else:
             operator_code = ""
 
-        if account== '' or password == '':
+        if account == '' or password == '':
             self.show_message_box('请填学号或密码！')
         else:
             # 执行登录操作
-            login_result = login(login_url, account, password, operator_code)
-            if login_result == 1:
+            login_id, login_msg = login(login_url, account, password, operator_code)
+            if login_id == 1:
                 save_encrypted_login_info(account, password, operator_code)
                 self.show_message_box('登录成功！')
                 login_result = "登录成功"
@@ -135,14 +180,16 @@ class LoginWindow(QWidget):
                 time.sleep(1)
                 # 登录成功时发射信号
                 self.login_successful.emit()
-            elif login_result == 2:
+            elif login_id == 2:
                 save_encrypted_login_info(account, password, operator_code)
                 self.show_message_box('你已经在线，点击OK进入监控...')
                 logging.info("已经在线状态")
                 self.login_successful.emit()
+            elif login_id == 3:
+                self.handle_login_id_3()
             else:
-                self.show_message_box(login_result)
-                logging.info(login_result)
+                self.show_message_box(login_msg)
+                logging.info(login_msg)
 
     def logout(self):
         logout_result = logout(logout_url, self.account_entry.text())
@@ -159,3 +206,49 @@ class LoginWindow(QWidget):
             self.password_entry.setEchoMode(QLineEdit.Normal)
         else:
             self.password_entry.setEchoMode(QLineEdit.Password)
+
+    def handle_login_id_3(self):
+        dialog = CustomDialog()
+        if dialog.exec_() == QDialog.Accepted:
+            # 用户点击了确认按钮
+            wlan_user_ip = dialog.ip_entry.text()
+            wlan_user_mac = dialog.mac_entry.text()
+            account = self.account_entry.text()
+            password = self.password_entry.text()
+            operator = self.operator_combo.currentText()
+            if operator == "中国移动":
+                operator_code = "cmcc"
+            elif operator == "中国电信":
+                operator_code = "telecom"
+            elif operator == "中国联通":
+                operator_code = "unicom"
+            elif operator == "校园网":
+                operator_code = ""
+            else:
+                operator_code = ""
+            # 在此处处理用户输入的数据，可以将其发送到服务器等
+            if account == '' or password == '':
+                self.show_message_box('请填学号或密码！')
+            else:
+                # 执行登录操作
+                login_id, login_msg = login_unmac(login_url, account, password, wlan_user_ip, wlan_user_mac,
+                                                  operator_code)
+                if login_id == 1:
+                    save_encrypted_login_info(account, password, operator_code)
+                    self.show_message_box('登录成功！')
+                    login_result = "登录成功"
+                    logging.info(login_result)
+                    time.sleep(1)
+                    # 登录成功时发射信号
+                    self.login_successful.emit()
+                elif login_id == 2:
+                    save_encrypted_login_info(account, password, operator_code)
+                    self.show_message_box('你已经在线，点击OK进入监控...')
+                    logging.info("已经在线状态")
+                    self.login_successful.emit()
+                elif login_id == 3:
+                    self.show_message_box('还是填写错误，你的路由器不是这个wan_ip或mac')
+                    self.handle_login_id_3()
+                else:
+                    self.show_message_box(login_msg)
+                    logging.info(login_msg)
