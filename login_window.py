@@ -37,8 +37,8 @@ class LoginWindow(QWidget):
         hbox_layout = QHBoxLayout()
 
         # 账号输入框
-        self.account_label = QLabel("账号:")
-        self.account_label.setFont(QFont("Arial", 12))  # 设置字体大小
+        self.account_label = QLabel("学号:")
+        self.account_label.setFont(QFont("Arial", 13))  # 设置字体大小
         self.account_entry = QLineEdit()
         self.account_entry.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         hbox_layout.addWidget(self.account_label)
@@ -51,7 +51,7 @@ class LoginWindow(QWidget):
 
         # 密码输入框
         self.password_label = QLabel("密码:")
-        self.password_label.setFont(QFont("Arial", 12))  # 设置字体大小
+        self.password_label.setFont(QFont("Arial", 13))  # 设置字体大小
         self.password_entry = QLineEdit()
         self.password_entry.setEchoMode(QLineEdit.Password)
         self.password_entry.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -63,7 +63,7 @@ class LoginWindow(QWidget):
 
         # 显示密码复选框
         self.show_password_checkbox = QCheckBox("显示密码")
-        self.show_password_checkbox.setFont(QFont("Arial", 12))  # 设置字体大小
+        self.show_password_checkbox.setFont(QFont("Arial", 13))  # 设置字体大小
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
         main_layout.addWidget(self.show_password_checkbox)
 
@@ -72,10 +72,10 @@ class LoginWindow(QWidget):
 
         # 运营商下拉框
         self.operator_label = QLabel("运营商:")
-        self.operator_label.setFont(QFont("Arial", 12))  # 设置字体大小
+        self.operator_label.setFont(QFont("Arial", 13))  # 设置字体大小
         hbox_layout3.addWidget(self.operator_label)
         self.operator_combo = QComboBox()
-        self.operator_combo.setFont(QFont("Arial", 12))  # 设置字体大小
+        self.operator_combo.setFont(QFont("Arial", 13))  # 设置字体大小
         self.operator_combo.addItems(["中国移动", "中国电信", "中国联通", "校园网"])
         hbox_layout3.addWidget(self.operator_combo)
         hbox_layout3.addStretch(1)
@@ -122,24 +122,27 @@ class LoginWindow(QWidget):
         else:
             operator_code = ""
 
-        # 执行登录操作
-        login_result = login(login_url, account, password, operator_code)
-        if login_result == 1:
-            save_encrypted_login_info(account, password, operator_code)
-            self.show_message_box('登录成功！')
-            login_result = "登录成功"
-            logging.info(login_result)
-            time.sleep(1)
-            # 登录成功时发射信号
-            self.login_successful.emit()
-        elif login_result == 2:
-            save_encrypted_login_info(account, password, operator_code)
-            self.show_message_box('你已经在线，点击OK进入监控...')
-            logging.info("已经在线状态")
-            self.login_successful.emit()
+        if account== '' or password == '':
+            self.show_message_box('请填学号或密码！')
         else:
-            self.show_message_box(login_result)
-            logging.info(login_result)
+            # 执行登录操作
+            login_result = login(login_url, account, password, operator_code)
+            if login_result == 1:
+                save_encrypted_login_info(account, password, operator_code)
+                self.show_message_box('登录成功！')
+                login_result = "登录成功"
+                logging.info(login_result)
+                time.sleep(1)
+                # 登录成功时发射信号
+                self.login_successful.emit()
+            elif login_result == 2:
+                save_encrypted_login_info(account, password, operator_code)
+                self.show_message_box('你已经在线，点击OK进入监控...')
+                logging.info("已经在线状态")
+                self.login_successful.emit()
+            else:
+                self.show_message_box(login_result)
+                logging.info(login_result)
 
     def logout(self):
         logout_result = logout(logout_url, self.account_entry.text())
