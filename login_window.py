@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QTextEdit, QLineEdit, QCheckBox, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QSizePolicy, QLineEdit, QCheckBox, QComboBox, QMessageBox
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, pyqtSignal
 from authentication_utils import login, logout
@@ -23,8 +23,7 @@ class LoginWindow(QWidget):
         # 自定义窗口大小
         window_width = 500
         window_height = 400
-        self.setFixedSize(window_width, window_height)  # 设置窗口固定大小
-
+        self.setFixedSize(window_width, window_height)  # 设置窗口固定大小 
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignCenter)
 

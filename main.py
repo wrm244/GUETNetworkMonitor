@@ -4,10 +4,12 @@ from login_window import LoginWindow
 import logging
 from monitor_thread import MonitorThread
 from monitor_window import MonitorWindow
+from PyQt5.QtGui import QIcon
 import threading
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon('icon.png'))
     login_window = LoginWindow()
     logging.basicConfig(filename='monitor.log', level=logging.INFO, format='%(asctime)s - %(message)s')
     # 监听登录成功信号
