@@ -32,7 +32,7 @@ def check_internet_connection():
             'http': http_proxy,
             'https': https_proxy,
         }
-        response = requests.get("https://www.baidu.com", timeout=5 ,proxies=proxies, verify=False)
+        response = requests.get("https://www.baidu.com", timeout=5 ,proxies=proxies, verify=False,headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.41"})
         if response.status_code == 200:
             return True
         else:
