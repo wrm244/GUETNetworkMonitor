@@ -64,9 +64,20 @@ def ip_to_int(ip):
         return None
 
 
-def format_mac(mac_address):
-    try:
-        return mac_address.upper().replace(':', '')
-    except Exception as e:
-        print("MAC地址格式化失败:", e)
-        return None
+def validate_ip(ip):
+    # 使用正则表达式验证IP地址格式
+    ip_regex = r'10(?:(?:\.1[0-9][0-9])|(?:\.2[0-4][0-9])|(?:\.25[0-5])|(?:\.[1-9][0-9])|(?:\.[0-9])){3}'
+    return re.match(ip_regex, ip) is not None
+
+
+def validate_mac(mac):
+    # 删除mac地址中的冒号或破折号
+    mac = mac.replace(':', '').replace('-', '').replace(" ", "")
+    # 使用正则表达式验证MAC地址格式
+    mac_regex = r'^([0-9A-Fa-f]{12})$'
+    return re.match(mac_regex, mac) is not None
+
+
+def format_mac(mac):
+    # 删除mac地址中的冒号或破折号，然后转换为大写字母形式
+    return mac.replace(':', '').replace('-', '').replace(" ", "").upper()

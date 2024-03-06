@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayo
 from utils import save_encrypted_login_info, load_decrypted_login_info
 
 from authentication_utils import login, logout, login_unmac
+from network_utils import validate_ip,validate_mac,format_mac
 
 # 要登录的URL
 login_url = "http://10.0.1.5:801/eportal/portal/login"
@@ -211,8 +212,15 @@ class LoginWindow(QWidget):
         dialog = CustomDialog()
         if dialog.exec_() == QDialog.Accepted:
             # 用户点击了确认按钮
-            wlan_user_ip = dialog.ip_entry.text()
+            wlan_user_ip = dialog.ip_entry.text().replace(" ", "")
             wlan_user_mac = dialog.mac_entry.text()
+            if validate_mac(wlan_user_mac):
+                wlan_user_mac = format_mac(wlan_user_mac)
+            elif validate_ip(wlan_user_ip):
+                wlan_user_ip = wlan_user_ip
+            else:
+                self.show_message_box('IP或MAC地址格式填写错误，请检查，MAC请使用\'-\'或\':\'连接；IP请使用10开头的点分十进制地址')
+                self.handle_login_id_3()
             account = self.account_entry.text()
             password = self.password_entry.text()
             operator = self.operator_combo.currentText()
