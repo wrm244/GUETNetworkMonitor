@@ -30,11 +30,11 @@ def login(url, user_account, user_password, user_operators=''):
                 if response.status_code == 200:
                     result = json.loads(response.text[7:-2])
                     if result['result'] == 1:
-                        return {3, result['msg']}
+                        return {1, result['msg']}
                     elif result['result'] == 0:
                         result_msg = result['msg']
                         if "已经在线" in result_msg:
-                            return {3, result['msg']}
+                            return {2, result['msg']}
                         elif "1.2.3.4" in result_msg:
                             return {3, result[
                                 'msg']}  # "登录失败,请查看：wlan_ip: "+wlan_user_ip +" mac: "+wlan_user_mac + " 是否正确"
